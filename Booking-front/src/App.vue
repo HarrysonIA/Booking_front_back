@@ -13,9 +13,20 @@ const formData = ref({
 const booking = ref(null);
 const register = ref(null);
 const isValid = ref(false);
-const isLoading = ref(false);
-const message = ref('');
+const isLoading = ref(null);
+const text = ref({
+  "message": "",
+});
+const image = ref({
+  "url": "",
+});
+const classifier = ref({
+  "message": "",
+});
 const response = ref(null);
+const responseimage = ref(null);
+const responseclassifier = ref(null);
+
 const validateInput = () => {
   const docNumberPattern = /^\d{10}$/;
   isValid.value = docNumberPattern.test(searchDocNumber.value);
@@ -36,21 +47,49 @@ const searchBooking = async () => {
 
 const handleSubmit = async () => {
   try {
-    const respons = await axios.post(`http://127.0.0.1:5000/generate`,{"message": message },{
+    const respons = await axios.post(`http://127.0.0.1:5000/generate`,text.value,{ 
       headers: {
         'Content-Type': 'application/json'
       }
     });
-    console.log(respons)
-    response.value = respons.data.message._value;
-
+    console.log(respons);
+    response.value = respons.data;
+    
+  } catch (error) {
+    console.error('Error al crear la reserva:', error);
+  }
+};
+const handleImageSubmit = async () => {
+  try {
+    const respons = await axios.post(`http://127.0.0.1:5000/image`,image.value,{ 
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log(respons);
+    responseimage.value = respons.data;
+    
+  } catch (error) {
+    console.error('Error al crear la reserva:', error);
+  }
+};
+const handleClassifierSubmit = async () => {
+  try {
+    const respons = await axios.post(`http://127.0.0.1:5000/classifier`,classifier.value,{ 
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log(respons);
+    responseimage.value = respons.data;
+    
   } catch (error) {
     console.error('Error al crear la reserva:', error);
   }
 };
 const submitForm = async () => {
   try {
-    const response = await axios.post(`http://localhost:5000/book`,formData.value,{
+    const response = await axios.post(`http://127.0.0.1:5000/book`,formData.value,{
       headers: {
         'Content-Type': 'application/json'
       }
@@ -96,17 +135,17 @@ const submitForm = async () => {
     <div v-if="register"><h3>REGISTRO EXITOSO</h3></div>
     <div v-if="booking"  class="booking-details">
       <h2>Booking Details</h2>
-      <p><strong>Fullname:</strong> {{ booking[1] }}</p>
-      <p><strong>Check-in Date:</strong> {{ booking[2]}} </p>
-      <p><strong>Check-out Date:</strong> {{ booking[3] }} </p>
-      <p><strong>Price:</strong> {{ booking[4] }}</p>
-      <p><strong>Document Number:</strong> {{ booking[5] }}</p>
+      <p><strong>Fullname:</strong> {{ booking["fullname"] }}</p>
+      <p><strong>Check-in Date:</strong> {{ booking["checkin_date"]}} </p>
+      <p><strong>Check-out Date:</strong> {{ booking["checkout_date"] }} </p>
+      <p><strong>Price:</strong> {{ booking["price"] }}</p>
+      <p><strong>Document Number:</strong> {{ booking["document_number"] }}</p>
     </div>
     <p v-if="!booking && searchDocNumber && !isLoading">Booking not found.</p>
     <div>
     <form @submit.prevent="handleSubmit">
       <label for="message">Mensaje:</label>
-      <input type="text" id="message" v-model="message" required>
+      <input type="text" id="text" v-model="text.message" required>
       <button type="submit">Enviar</button>
     </form>
 
@@ -114,7 +153,29 @@ const submitForm = async () => {
       <p>Respuesta:</p>
       <p>{{ response }}</p>
     </div>
+
+    <form @submit.prevent="handleImageSubmit">
+      <label for="message">URL:</label>
+      <input type="text" id="image" v-model="image.url" required>
+      <button type="submit">Enviar</button>
+    </form>
+
+    <div v-if="responseimage" class="Responses">
+      <p>Respuesta:</p>
+      <p>{{ responseimage }}</p>
+    </div>
+    <form @submit.prevent="handleClassifierSubmit">
+      <label for="message">Ethical Sentence:</label>
+      <input type="text" id="classifier" v-model="classifier.message" required>
+      <button type="submit">Enviar</button>
+    </form>
+
+    <div v-if="responseclassifier" class="Responses">
+      <p>Respuesta:</p>
+      <p>{{ responseclassifier }}</p>
+    </div>
   </div>
+    
 
 </template>
 <style scoped>
